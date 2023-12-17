@@ -33,6 +33,12 @@ Shader "SanditherToon"
         _MatCapStrength("MatCapStrength", Range(0., 1.)) = 0.
         _MatCapMask("MatCapMask", 2D) = "white" {}
 
+        [Header(Specular)]
+        [Space(10)]
+        _SpecularStrength("SpecularStrength",Range(0., 1.)) = 0.0
+        _SpecularPower("SpecularPower",Range(0.01, 10.)) = 0.01
+        _SpecularBias("SpecularBias",Range(0., 1.)) = 0.5
+
         [Header(Shadow)]
         [Space(10)]
         _ShadowTex("ShadowTex", 2D) = "black" {}
@@ -443,6 +449,10 @@ Shader "SanditherToon"
         half _MatCapStrength;
         sampler2D _MatCapMask;
 
+        half _SpecularStrength;
+        half _SpecularPower;
+        half _SpecularBias;
+
         sampler2D _ShadowTex;
         fixed4 _ShadowOverlayColor;
         half _ShadowDitherThreshold;
@@ -513,7 +523,7 @@ Shader "SanditherToon"
             float2 viewportPos = INscreenPos.xy / INscreenPos.w;
             float2 screenPos = viewportPos * _ScreenParams.xy;
             fixed4 rimLightMask = tex2D(_RimLightMask, INuv);
-            float rim = lerp(0., pow(1. - saturate(dot(-normalize(viewDir), INnormal)), 2.), _RimLightStrength) * rimLightMask.x;
+            float rim = lerp(0., pow(1. - saturate(dot(viewDir, INnormal)), 2.), _RimLightStrength) * rimLightMask.x;
 
             float t = _TimeType == 0 ? _Time.y : _AnimationTime;
             float rad = _AnimationSpeed * t * PI;
@@ -600,7 +610,7 @@ Shader "SanditherToon"
 
                 clip(drawMainTexPattern(i.uv, i.screenPos));
 
-                float3 viewDir = i.positionWS - _WorldSpaceCameraPos.xyz;
+                float3 viewDir = normalize(_WorldSpaceCameraPos.xyz-i.positionWS);
 
                 // Lighting
                 // [OpenLit] Copy light datas from the input
@@ -611,6 +621,10 @@ Shader "SanditherToon"
                 float3 N = (i.tangent * normalmap.x) + (i.binormal * normalmap.y) + (i.normalWS * normalmap.z);
                 float3 L = lightDatas.lightDirection;
                 float NdotL = dot(N, L);
+
+                float3 H = normalize(L + viewDir);
+                half phoneSpec = pow(smoothstep(_SpecularBias-.02,_SpecularBias+.02,max(0., dot(N,H))), _SpecularPower);
+
                 fixed4 shadowTexColor = tex2D(_ShadowTex, i.uv);
                 fixed4 shadowColor = drawShadowPattern(i.uv, i.screenPos) > 0. ? shadowTexColor * _ShadowOverlayColor : 1.;
                 float3 factor = NdotL > _ShadowThreshold ? 1 : shadowColor.rgb;
@@ -630,6 +644,8 @@ Shader "SanditherToon"
                 col.rgb += emissiveTex.rgb * _EmissiveColor;
 
                 col.rgb *= lerp(lightDatas.indirectLight, lightDatas.directLight, factor);
+                col.rgb *= lerp(1., 1.+phoneSpec, _SpecularStrength);
+
                 fixed3 albedo = col.rgb;
 #if !defined(LIGHTMAP_ON) && UNITY_SHOULD_SAMPLE_SH
                 col.rgb += albedo * i.vertexLight;
@@ -663,7 +679,7 @@ Shader "SanditherToon"
 
                 clip(drawMainTexPattern(i.uv, i.screenPos));
 
-                float3 viewDir = i.positionWS - _WorldSpaceCameraPos.xyz;
+                float3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.positionWS);
 
                 // Lighting
                 // [OpenLit] Copy light datas from the input
@@ -674,6 +690,10 @@ Shader "SanditherToon"
                 float3 N = (i.tangent * normalmap.x) + (i.binormal * normalmap.y) + (i.normalWS * normalmap.z);
                 float3 L = lightDatas.lightDirection;
                 float NdotL = dot(N, L);
+
+                half3 H = normalize(L + viewDir);
+                half phoneSpec = pow(smoothstep(_SpecularBias-.02,_SpecularBias+.02,max(0., (dot(N, H)))), _SpecularPower);
+
                 fixed4 shadowTexColor = tex2D(_ShadowTex, i.uv);
                 fixed4 shadowColor = drawShadowPattern(i.uv, i.screenPos) > 0. ? shadowTexColor * _ShadowOverlayColor : 1.;
                 float3 factor = NdotL > _ShadowThreshold ? 1 : shadowColor.rgb;
@@ -692,6 +712,8 @@ Shader "SanditherToon"
                 col.rgb += emissiveTex.rgb * _EmissiveColor;
 
                 col.rgb *= lerp(0., OPENLIT_LIGHT_COLOR, factor*attenuation);
+                col.rgb *= lerp(1., 1.+phoneSpec, _SpecularStrength);
+
                 UNITY_APPLY_FOG(i.fogCoord, col);
 
                 // [OpenLit] Premultiply (only for transparent materials)
