@@ -1,6 +1,6 @@
 // Copyright (c) 2023 JohnTonarino
 // Released under the MIT license
-// SanditherToon v 1.5.2
+// SanditherToon v 1.5.3
 Shader "SanditherToon"
 {
     Properties
