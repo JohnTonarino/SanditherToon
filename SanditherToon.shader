@@ -623,7 +623,8 @@ Shader "SanditherToon"
 				col = drawRimLightPattern(i.uv, i.screenPos, viewDir, i.normalWS) > 0. ? _RimColor : col;
 
 				fixed4 alphaMask = tex2D(_TransparentMask, i.uv);
-				col.a = col.a * OpenLitGray(alphaMask.rgb) * _TransparentLevel;
+				col.a = col.a * OpenLitGray(alphaMask.rgb);
+				if (col.a < _TransparentLevel) discard;
 
 				fixed4 emissiveTex = tex2D(_EmissiveTex, i.uv);
 				col.rgb += emissiveTex.rgb * _EmissiveColor;
@@ -684,7 +685,8 @@ Shader "SanditherToon"
 				col = drawRimLightPattern(i.uv, i.screenPos, viewDir, i.normalWS) > 0. ? _RimColor : col;
 
 				fixed4 alphaMask = tex2D(_TransparentMask, i.uv);
-				col.a = col.a * OpenLitGray(alphaMask.rgb) * _TransparentLevel;
+				col.a = col.a * OpenLitGray(alphaMask.rgb);
+				if (col.a < _TransparentLevel) discard;
 
 				fixed4 emissiveTex = tex2D(_EmissiveTex, i.uv);
 				col.rgb += emissiveTex.rgb * _EmissiveColor;
@@ -835,6 +837,7 @@ Shader "SanditherToon"
 
 				float factor = 1.;
 				if (_ReceiveShadow) factor *= attenuation;
+				if (_OutlineMode == 0)discard;
 
 				fixed4 col = i.color;
 
