@@ -1,6 +1,6 @@
-// Copyright (c) 2023 JohnTonarino
+﻿// Copyright (c) 2023 JohnTonarino
 // Released under the MIT license
-// SanditherToon v 1.5.2
+// SanditherToon v 1.5.3
 Shader "SanditherToon"
 {
     Properties
@@ -58,6 +58,7 @@ Shader "SanditherToon"
         _OuterOutlineColor("OuterOutlineColor", Color) = (1., 1., 1., 1.)
         _AsOutlineUnlit("As Outline Unlit", Range(0,1)) = 0
         _OutlineWidth("OutlineWidth", Range(.0, .05)) = .025
+        _OutlineRatio("OutlineRatio", Range(.01, .99)) = .5
         _OutlineMask("OutlineMask", 2D) = "white" {}
 
         [Header(Transparent)]
@@ -468,6 +469,7 @@ Shader "SanditherToon"
         fixed4 _OuterOutlineColor;
         float  _AsOutlineUnlit;
         half   _OutlineWidth;
+        half   _OutlineRatio;
         sampler2D _OutlineMask;
 
         sampler2D _TransparentMask;
@@ -782,7 +784,7 @@ Shader "SanditherToon"
                     v2f_sndbase sndbase = vert_snd(v);
 
                     o.pos = sndbase.pos;
-                    o.pos.xy += _OutlineMode == 0 ? 0. : (_OutlineMode == 1 ?  offsets[i] * _OutlineWidth : .5 * offsets[i] * _OutlineWidth);
+                    o.pos.xy += _OutlineMode == 0 ? 0. : (_OutlineMode == 1 ?  offsets[i] * _OutlineWidth : _OutlineRatio * offsets[i] * _OutlineWidth);
                     o.positionWS = sndbase.positionWS;
                     o.uv = sndbase.uv;
 
