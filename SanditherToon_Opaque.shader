@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2023 JohnTonarino
 // Released under the MIT license
-// SanditherToon v 1.5.3
+// SanditherToon v 1.5.4
 Shader "SanditherToon_Opaque"
 {
     Properties
