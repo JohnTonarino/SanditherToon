@@ -1,7 +1,7 @@
-// Copyright (c) 2023 JohnTonarino
+﻿// Copyright (c) 2023 JohnTonarino
 // Released under the MIT license
-// SanditherToon v 1.5.3
-Shader "SanditherToon"
+// SanditherToon v 1.5.4
+Shader "SanditherToon_Cutout"
 {
     Properties
     {
@@ -16,7 +16,7 @@ Shader "SanditherToon"
 
         [Header(MainTex)]
         [Space(10)]
-        _MainTex("Texture", 2D) = "white" {}
+        _MainTex("Albedo (RGB)", 2D) = "white" {}
         _MainTexOverlayColor("MainTexOverlayColor", Color) = (1., 1., 1., 1.)
         _MainTexDitherThreshold("MainTexThreshold", Range(0., 1.)) = 0.
         _DisappearTexStart("DissappearTexStart", Float) = 1.
@@ -58,6 +58,7 @@ Shader "SanditherToon"
         _OuterOutlineColor("OuterOutlineColor", Color) = (1., 1., 1., 1.)
         _AsOutlineUnlit("As Outline Unlit", Range(0,1)) = 0
         _OutlineWidth("OutlineWidth", Range(.0, .05)) = .025
+        _OutlineRatio("OutlineRatio", Range(.01, .99)) = .5
         _OutlineMask("OutlineMask", 2D) = "white" {}
 
         [Header(Transparent)]
@@ -100,6 +101,7 @@ Shader "SanditherToon"
     {
         LOD 100
         Cull[_Cull]
+        Tags { "RenderType"="TransparentCutout" "Queue"="AlphaTest"}
 
         CGINCLUDE
         #include "UnityCG.cginc"
@@ -468,6 +470,7 @@ Shader "SanditherToon"
         fixed4 _OuterOutlineColor;
         float  _AsOutlineUnlit;
         half   _OutlineWidth;
+        half   _OutlineRatio;
         sampler2D _OutlineMask;
 
         sampler2D _TransparentMask;
@@ -782,7 +785,7 @@ Shader "SanditherToon"
                     v2f_sndbase sndbase = vert_snd(v);
 
                     o.pos = sndbase.pos;
-                    o.pos.xy += _OutlineMode == 0 ? 0. : (_OutlineMode == 1 ?  offsets[i] * _OutlineWidth : .5 * offsets[i] * _OutlineWidth);
+                    o.pos.xy += _OutlineMode == 0 ? 0. : (_OutlineMode == 1 ?  offsets[i] * _OutlineWidth : _OutlineRatio * offsets[i] * _OutlineWidth);
                     o.positionWS = sndbase.positionWS;
                     o.uv = sndbase.uv;
 
