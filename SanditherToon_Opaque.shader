@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2023 JohnTonarino
 // Released under the MIT license
 // SanditherToon v 1.5.3
-Shader "SanditherToon"
+Shader "SanditherToon_Opaque"
 {
     Properties
     {
@@ -16,7 +16,7 @@ Shader "SanditherToon"
 
         [Header(MainTex)]
         [Space(10)]
-        _MainTex("Texture", 2D) = "white" {}
+        _MainTex("Albedo (RGB)", 2D) = "white" {}
         _MainTexOverlayColor("MainTexOverlayColor", Color) = (1., 1., 1., 1.)
         _MainTexDitherThreshold("MainTexThreshold", Range(0., 1.)) = 0.
         _DisappearTexStart("DissappearTexStart", Float) = 1.
@@ -101,6 +101,7 @@ Shader "SanditherToon"
     {
         LOD 100
         Cull[_Cull]
+        Tags { "RenderType"="Opaque" "Queue"="Geometry"}
 
         CGINCLUDE
         #include "UnityCG.cginc"
